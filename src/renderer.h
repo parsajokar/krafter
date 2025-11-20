@@ -13,7 +13,7 @@ public:
     inline static Renderer* Get() { return _instance; }
 
     void ClearBuffers() const;
-    void DrawRgbTriangle() const;
+    void DrawRectangle(float r, float g, float b, float a) const;
 
 private:
     inline static Renderer* _instance;
@@ -22,6 +22,7 @@ private:
     ~Renderer();
 
     uint32_t _program;
+    int32_t _programColorLocation;
 
     uint32_t _vertexArray;
     uint32_t _vertexBuffer;

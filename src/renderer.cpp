@@ -23,11 +23,12 @@ void Renderer::ClearBuffers() const
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Renderer::DrawRgbTriangle() const
+void Renderer::DrawRectangle(float r, float g, float b, float a) const
 {
     glUseProgram(_program);
+    glUniform4f(_programColorLocation, r, g, b, a);
     glBindVertexArray(_vertexArray);
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }
 
 static uint32_t CreateShader(uint32_t type, const char* source)
@@ -44,13 +45,11 @@ R"(
 #version 450 core
 
 layout(location = 0) in vec3 a_Position;
-layout(location = 1) in vec3 a_Color;
 
 out vec3 v_Color;
 
 void main()
 {
-    v_Color = a_Color;
     gl_Position = vec4(a_Position, 1.0);
 }
 )";
@@ -61,11 +60,11 @@ R"(
 
 layout(location = 0) out vec4 o_Color;
 
-in vec3 v_Color;
+uniform vec4 u_Color;
 
 void main()
 {
-    o_Color = vec4(v_Color, 1.0);
+    o_Color = u_Color;
 }
 )";
 
@@ -74,6 +73,8 @@ Renderer::Renderer()
     gladLoadGL(glfwGetProcAddress);
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.1, 0.1, 0.1, 1.0);
 
     _program = glCreateProgram();
@@ -92,32 +93,31 @@ Renderer::Renderer()
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
+    _programColorLocation = glGetUniformLocation(_program, "u_Color");
+
     glCreateVertexArrays(1, &_vertexArray);
     glCreateBuffers(1, &_vertexBuffer);
     glCreateBuffers(1, &_elementBuffer);
 
     float vertexBufferData[] =
     {
-        -0.5, -0.5, 0.0, 1.0, 0.0, 0.0,
-        0.0, 0.5, 0.0, 0.0, 1.0, 0.0,
-        0.5, -0.5, 0.0, 0.0, 0.0, 1.0
+        0.0, 0.0, 0.0,
+        1.0, 0.0, 0.0,
+        1.0, 1.0, 0.0,
+        0.0, 1.0, 0.0
     };
 
-    uint32_t elementBufferData[] = { 0, 1, 2 };
+    uint32_t elementBufferData[] = { 0, 2, 1, 0, 2, 3 };
 
-    glNamedBufferData(_vertexBuffer, 3 * 6 * sizeof(float), vertexBufferData, GL_STATIC_DRAW);
-    glNamedBufferData(_elementBuffer, 3 * sizeof(uint32_t), elementBufferData, GL_STATIC_DRAW);
+    glNamedBufferData(_vertexBuffer, 4 * 3 * sizeof(float), vertexBufferData, GL_STATIC_DRAW);
+    glNamedBufferData(_elementBuffer, 6 * sizeof(uint32_t), elementBufferData, GL_STATIC_DRAW);
 
-    glVertexArrayVertexBuffer(_vertexArray, 0, _vertexBuffer, 0, 6 * sizeof(float));
+    glVertexArrayVertexBuffer(_vertexArray, 0, _vertexBuffer, 0, 3 * sizeof(float));
     glVertexArrayElementBuffer(_vertexArray, _elementBuffer);
 
     glEnableVertexArrayAttrib(_vertexArray, 0);
     glVertexArrayAttribBinding(_vertexArray, 0, 0);
     glVertexArrayAttribFormat(_vertexArray, 0, 3, GL_FLOAT, GL_FALSE, 0);
-
-    glEnableVertexArrayAttrib(_vertexArray, 1);
-    glVertexArrayAttribBinding(_vertexArray, 1, 0);
-    glVertexArrayAttribFormat(_vertexArray, 1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float));
 }
 
 Renderer::~Renderer()

@@ -21,6 +21,8 @@ void Game::Deinit()
 
 void Game::Run()
 {
+
+    float color[] = { 1.0, 1.0, 1.0, 1.0 };
     while (Window::Get()->IsOpen())
     {
         Window::Get()->PollEvents();
@@ -29,12 +31,14 @@ void Game::Run()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::ShowDemoWindow();
+        ImGui::Begin("Settings");
+        ImGui::ColorPicker4("Rectangle Color", color);
+        ImGui::End();
 
         ImGui::Render();
 
         Renderer::Get()->ClearBuffers();
-        Renderer::Get()->DrawRgbTriangle();
+        Renderer::Get()->DrawRectangle(color[0], color[1], color[2], color[3]);
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         Window::Get()->SwapBuffers();
