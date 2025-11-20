@@ -11,6 +11,9 @@ add_subdirectory(lib/glfw)
 
 add_subdirectory(lib/glad)
 
+set(IMGUI_GLFW_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/glfw/include")
+add_subdirectory(lib/imgui)
+
 find_package(OpenGL REQUIRED)
 
 # Krafter
@@ -35,6 +38,8 @@ target_include_directories(
     src
     lib/glfw/include
     lib/glad/include
+    lib/imgui
+    lib/imgui/backends
 )
 
 target_link_libraries(
@@ -42,5 +47,6 @@ target_link_libraries(
     PRIVATE
     glfw
     glad
+    imgui
     OpenGL
 )

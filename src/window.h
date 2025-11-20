@@ -17,6 +17,8 @@ public:
     void PollEvents() const;
     void SwapBuffers() const;
 
+    inline WindowId GetId() const { return _id; }
+
 private:
     inline static Window* _instance;
 
