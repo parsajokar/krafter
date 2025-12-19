@@ -8,7 +8,7 @@ namespace Krafter
 {
 
 Camera::Camera(const glm::vec3& position, float fov)
-    : speed(10.0f), sensitivity(1.0f),
+    : speed(10.0f), sensitivity(5.0f),
     _isControlled(true), _isSpaceReleased(true),
     _position(position), _fov(fov),
     _pitch(0.0f), _yaw(0.0f), _lastCursorPosition(Window::Get()->GetCursorPosition())
@@ -74,8 +74,11 @@ void Camera::Update()
 void Camera::UpdateProjection()
 {
     const glm::uvec2& size = Window::Get()->GetSize();
-    float aspectRatio = (float)size.x / (float)size.y;
-    _projection = glm::perspective(_fov, aspectRatio, 0.1f, 1000.0f);
+    if (size.x > 0 && size.y > 0)
+    {
+        float aspectRatio = (float)size.x / (float)size.y;
+        _projection = glm::perspective(_fov, aspectRatio, 0.1f, 1000.0f);
+    }
 }
 
 void Camera::ToggleState()

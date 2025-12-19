@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -7,10 +9,15 @@ project(krafter LANGUAGES CXX)
 
 # Libraries
 
+set(CMAKE_FOLDER "Libraries")
+
 set(GLFW_BUILD_DOCS OFF)
 set(GLFW_BUILD_TESTS OFF)
 set(GLFW_BUILD_EXAMPLES OFF)
 add_subdirectory(lib/glfw)
+set_target_properties(glfw PROPERTIES FOLDER "Libraries/GLFW")
+set_target_properties(uninstall PROPERTIES FOLDER "Libraries/GLFW")
+set_target_properties(update_mappings PROPERTIES FOLDER "Libraries/GLFW")
 
 add_subdirectory(lib/glad)
 
@@ -20,6 +27,8 @@ add_subdirectory(lib/imgui)
 add_subdirectory(lib/glm)
 
 find_package(OpenGL REQUIRED)
+
+unset(CMAKE_FOLDER)
 
 # Krafter
 
@@ -57,5 +66,5 @@ target_link_libraries(
     glad
     imgui
     glm
-    OpenGL
+    ${OPENGL_gl_LIBRARY}
 )
