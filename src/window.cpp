@@ -32,6 +32,29 @@ void Window::SwapBuffers() const
     glfwSwapBuffers(_id);
 }
 
+float Window::GetTime() const
+{
+    return glfwGetTime();
+}
+
+bool Window::IsKeyDown(Key key) const
+{
+    return glfwGetKey(_id, (int)key) == GLFW_PRESS;
+}
+
+void Window::EnableCursor(bool state) const
+{
+    glfwSetInputMode(_id, GLFW_CURSOR, state ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+}
+
+glm::vec2 Window::GetCursorPosition() const
+{
+    double x;
+    double y;
+    glfwGetCursorPos(_id, &x, &y);
+    return glm::vec2(x, y);
+}
+
 void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
     Window* win = Window::Get();
@@ -40,15 +63,12 @@ void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 
     glViewport(0, 0, win->GetSize().x, win->GetSize().y);
 
-    Camera& cam = Renderer::Get()->GetCamera();
-    cam.UpdateProjection();
-    cam.UpdateViewProjection();
+    Renderer::Get()->GetCamera().UpdateProjection();
 }
 
 Window::Window()
+    : _size(1280, 720)
 {
-    _size = glm::uvec2(1280, 720);
-
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
@@ -57,6 +77,8 @@ Window::Window()
     glfwMakeContextCurrent(_id);
 
     glfwSetFramebufferSizeCallback(_id, FramebufferSizeCallback);
+
+    EnableCursor(false);
 }
 
 Window::~Window()

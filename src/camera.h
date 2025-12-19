@@ -10,20 +10,26 @@ class Camera
 public:
     Camera(const glm::vec3& position, float fov);
 
-    inline const glm::vec3& GetPosition() const { return _position; }
-    void SetPosition(const glm::vec3& position);
-
+    void Update();
+    void UpdateProjection();
     inline const glm::mat4& GetViewProjection() const { return _viewProjection; }
 
-    void UpdateTransform();
-    void UpdateProjection();
-    void UpdateViewProjection();
+    float speed;
+    float sensitivity;
 
 private:
+    void ToggleState();
+
+    bool _isControlled;
+    bool _isSpaceReleased;
+
     glm::vec3 _position;
     float _fov;
 
-    glm::mat4 _transform;
+    float _pitch;
+    float _yaw;
+    glm::vec2 _lastCursorPosition;
+
     glm::mat4 _projection;
     glm::mat4 _viewProjection;
 };

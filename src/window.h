@@ -8,6 +8,15 @@ using WindowId = GLFWwindow*;
 namespace Krafter
 {
 
+enum class Key : int
+{
+    Space = 32,
+    W = 87,
+    S = 83,
+    D = 68,
+    A = 65,
+};
+
 class Window
 {
 public:
@@ -18,6 +27,13 @@ public:
     bool IsOpen() const;
     void PollEvents() const;
     void SwapBuffers() const;
+
+    float GetTime() const;
+
+    bool IsKeyDown(Key key) const;
+
+    void EnableCursor(bool state) const;
+    glm::vec2 GetCursorPosition() const;
 
     inline WindowId GetId() const { return _id; }
     inline const glm::uvec2& GetSize() const { return _size; }

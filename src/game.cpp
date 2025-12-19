@@ -21,17 +21,28 @@ void Game::Deinit()
 
 void Game::Run()
 {
+    float color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-    float color[] = { 1.0, 1.0, 1.0, 1.0 };
+    float lastFrameTime = 0.0f;
+
     while (Window::Get()->IsOpen())
     {
         Window::Get()->PollEvents();
+
+        float currentFrameTime = Window::Get()->GetTime();
+        _delta = currentFrameTime - lastFrameTime;
+        lastFrameTime = currentFrameTime;
+
+        Renderer::Get()->GetCamera().Update();
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
         ImGui::Begin("Settings");
+        ImGui::SliderFloat("Camera Speed", &Renderer::Get()->GetCamera().speed, 1.0f, 100.0f);
+        ImGui::SliderFloat("Camera Sensitivity", &Renderer::Get()->GetCamera().sensitivity, 0.1f, 10.0f);
+        ImGui::NewLine();
         ImGui::ColorPicker4("Rectangle Color", color);
         ImGui::End();
 
@@ -46,6 +57,7 @@ void Game::Run()
 }
 
 Game::Game()
+    : _delta(0.0f)
 {
     Window::Init();
     Renderer::Init();
