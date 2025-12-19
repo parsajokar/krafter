@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "camera.h"
+
 namespace Krafter
 {
 
@@ -12,6 +14,8 @@ public:
     static void Deinit();
     inline static Renderer* Get() { return _instance; }
 
+    inline Camera& GetCamera() { return _camera; }
+
     void ClearBuffers() const;
     void DrawRectangle(float r, float g, float b, float a) const;
 
@@ -21,8 +25,9 @@ private:
     Renderer();
     ~Renderer();
 
+    Camera _camera;
+
     uint32_t _program;
-    int32_t _programColorLocation;
 
     uint32_t _vertexArray;
     uint32_t _vertexBuffer;

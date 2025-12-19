@@ -1,5 +1,7 @@
 #pragma once
 
+#include "glm/glm.hpp"
+
 typedef struct GLFWwindow GLFWwindow;
 using WindowId = GLFWwindow*;
 
@@ -18,6 +20,7 @@ public:
     void SwapBuffers() const;
 
     inline WindowId GetId() const { return _id; }
+    inline const glm::uvec2& GetSize() const { return _size; }
 
 private:
     inline static Window* _instance;
@@ -26,6 +29,9 @@ private:
     ~Window();
 
     WindowId _id;
+    glm::uvec2 _size;
+
+    friend void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
 };
 
 } // namespace Krafter

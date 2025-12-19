@@ -2,6 +2,7 @@
 
 #include "glad/gl.h"
 #include "GLFW/glfw3.h"
+#include "glm/gtc/type_ptr.hpp"
 
 #include "renderer.h"
 
@@ -26,7 +27,8 @@ void Renderer::ClearBuffers() const
 void Renderer::DrawRectangle(float r, float g, float b, float a) const
 {
     glUseProgram(_program);
-    glUniform4f(_programColorLocation, r, g, b, a);
+    glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(_camera.GetViewProjection()));
+    glUniform4f(1, r, g, b, a);
     glBindVertexArray(_vertexArray);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }
@@ -46,11 +48,11 @@ R"(
 
 layout(location = 0) in vec3 a_Position;
 
-out vec3 v_Color;
+layout(location = 0) uniform mat4 u_ViewProjection;
 
 void main()
 {
-    gl_Position = vec4(a_Position, 1.0);
+    gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
 }
 )";
 
@@ -60,7 +62,7 @@ R"(
 
 layout(location = 0) out vec4 o_Color;
 
-uniform vec4 u_Color;
+layout(location = 1) uniform vec4 u_Color;
 
 void main()
 {
@@ -69,13 +71,14 @@ void main()
 )";
 
 Renderer::Renderer()
+    : _camera(glm::vec3(0.0f), glm::radians(80.0f))
 {
     gladLoadGL(glfwGetProcAddress);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glClearColor(0.1, 0.1, 0.1, 1.0);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
     _program = glCreateProgram();
     uint32_t vertexShader = CreateShader(GL_VERTEX_SHADER, vertexShaderSource.c_str());
@@ -93,18 +96,16 @@ Renderer::Renderer()
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    _programColorLocation = glGetUniformLocation(_program, "u_Color");
-
     glCreateVertexArrays(1, &_vertexArray);
     glCreateBuffers(1, &_vertexBuffer);
     glCreateBuffers(1, &_elementBuffer);
 
     float vertexBufferData[] =
     {
-        0.0, 0.0, 0.0,
-        1.0, 0.0, 0.0,
-        1.0, 1.0, 0.0,
-        0.0, 1.0, 0.0
+        0.0f, 0.0f, -1.0f,
+        1.0f, 0.0f, -1.0f,
+        1.0f, 1.0f, -1.0f,
+        0.0f, 1.0f, -1.0f
     };
 
     uint32_t elementBufferData[] = { 0, 2, 1, 0, 2, 3 };
