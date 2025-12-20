@@ -10,6 +10,7 @@ namespace Krafter
 
 enum class Key : int
 {
+    Escape = 256,
     Space = 32,
     W = 87,
     S = 83,
@@ -25,6 +26,8 @@ public:
     inline static Window* Get() { return _instance; }
 
     bool IsOpen() const;
+    void Close() const;
+
     void PollEvents() const;
     void SwapBuffers() const;
 
@@ -44,10 +47,10 @@ private:
     Window();
     ~Window();
 
+    static void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
+
     WindowId _id;
     glm::uvec2 _size;
-
-    friend void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
 };
 
 } // namespace Krafter

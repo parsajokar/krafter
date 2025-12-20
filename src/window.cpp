@@ -22,6 +22,11 @@ bool Window::IsOpen() const
     return !glfwWindowShouldClose(_id);
 }
 
+void Window::Close() const
+{
+    glfwSetWindowShouldClose(_id, GLFW_TRUE);
+}
+
 void Window::PollEvents() const
 {
     glfwPollEvents();
@@ -55,7 +60,7 @@ glm::vec2 Window::GetCursorPosition() const
     return glm::vec2(x, y);
 }
 
-void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
+void Window::FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
     Window* win = Window::Get();
     win->_size.x = width;

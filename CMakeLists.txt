@@ -26,6 +26,8 @@ add_subdirectory(lib/imgui)
 
 add_subdirectory(lib/glm)
 
+add_subdirectory(lib/stb)
+
 find_package(OpenGL REQUIRED)
 
 unset(CMAKE_FOLDER)
@@ -57,6 +59,7 @@ target_include_directories(
     lib/imgui
     lib/imgui/backends
     lib/glm
+    lib/stb/include
 )
 
 target_link_libraries(
@@ -66,5 +69,6 @@ target_link_libraries(
     glad
     imgui
     glm
+    stb
     ${OPENGL_gl_LIBRARY}
 )

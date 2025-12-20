@@ -1,6 +1,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "glm/gtc/type_ptr.hpp"
 
 #include "window.h"
 #include "renderer.h"
@@ -21,13 +22,16 @@ void Game::Deinit()
 
 void Game::Run()
 {
-    float color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-
+    glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     float lastFrameTime = 0.0f;
 
     while (Window::Get()->IsOpen())
     {
         Window::Get()->PollEvents();
+        if (Window::Get()->IsKeyDown(Key::Escape))
+        {
+            Window::Get()->Close();
+        }
 
         float currentFrameTime = Window::Get()->GetTime();
         _delta = currentFrameTime - lastFrameTime;
@@ -43,13 +47,13 @@ void Game::Run()
         ImGui::SliderFloat("Camera Speed", &Renderer::Get()->GetCamera().speed, 1.0f, 100.0f);
         ImGui::SliderFloat("Camera Sensitivity", &Renderer::Get()->GetCamera().sensitivity, 0.1f, 10.0f);
         ImGui::NewLine();
-        ImGui::ColorPicker4("Rectangle Color", color);
+        ImGui::ColorPicker4("Rectangle Color", glm::value_ptr(color));
         ImGui::End();
 
         ImGui::Render();
 
         Renderer::Get()->ClearBuffers();
-        Renderer::Get()->DrawRectangle(color[0], color[1], color[2], color[3]);
+        Renderer::Get()->DrawRectangle(color);
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         Window::Get()->SwapBuffers();
