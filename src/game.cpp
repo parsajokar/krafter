@@ -70,6 +70,9 @@ Game::Game()
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
 
+    ImGuiIO& io = ImGui::GetIO();
+    io.IniFilename = "assets/editorconfig.ini";
+
     ImGui_ImplGlfw_InitForOpenGL(Window::Get()->GetId(), true);
     ImGui_ImplOpenGL3_Init("#version 450 core");
 
