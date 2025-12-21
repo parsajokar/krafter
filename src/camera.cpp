@@ -18,12 +18,12 @@ Camera::Camera(const glm::vec3& position, float fov)
 
 void Camera::Update()
 {
-    if (Window::Get()->IsKeyDown(Key::Space) && _isSpaceReleased)
+    if (Window::Get()->IsKeyDown(Key::SPACE) && _isSpaceReleased)
     {
         ToggleState();
         _isSpaceReleased = false;
     }
-    if (!Window::Get()->IsKeyDown(Key::Space))
+    if (!Window::Get()->IsKeyDown(Key::SPACE))
     {
         _isSpaceReleased = true;
     }

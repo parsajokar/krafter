@@ -4,6 +4,7 @@
 #include <memory>
 #include <cstdint>
 
+#include "block.h"
 #include "camera.h"
 
 namespace Krafter
@@ -42,6 +43,23 @@ private:
     uint32_t _id;
 };
 
+class ChunkMesh
+{
+public:
+    ChunkMesh(const Chunk& chunk);
+    ~ChunkMesh();
+
+    inline uint32_t GetElementCount() const { return _elementCount; }
+    void Bind() const;
+
+private:
+    uint32_t _elementCount;
+
+    uint32_t _vertexArray;
+    uint32_t _vertexBuffer;
+    uint32_t _elementBuffer;
+};
+
 class Renderer
 {
 public:
@@ -52,7 +70,7 @@ public:
     inline Camera& GetCamera() { return _camera; }
 
     void ClearBuffers() const;
-    void DrawRectangle(const glm::vec4& color) const;
+    void DrawChunkMesh() const;
 
 private:
     inline static Renderer* _instance;
@@ -64,10 +82,7 @@ private:
 
     std::shared_ptr<ShaderProgram> _program;
     std::shared_ptr<Texture2D> _texture;
-
-    uint32_t _vertexArray;
-    uint32_t _vertexBuffer;
-    uint32_t _elementBuffer;
+    std::shared_ptr<ChunkMesh> _chunkMesh;
 };
 
 } // namespace Krafter

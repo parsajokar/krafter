@@ -39,6 +39,8 @@ add_executable(krafter)
 target_sources(
     krafter
     PRIVATE
+    src/block.h
+    src/block.cpp
     src/window.h
     src/window.cpp
     src/renderer.h

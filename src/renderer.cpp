@@ -1,4 +1,5 @@
 #include <string>
+#include <vector>
 #include <iostream>
 
 #include "glad/gl.h"
@@ -98,6 +99,108 @@ uint32_t ShaderProgram::CreateShader(uint32_t type, const char* source)
     return shader;
 }
 
+ChunkMesh::ChunkMesh(const Chunk& chunk)
+{
+    const glm::vec2 pos = chunk.GetPosition();
+
+    std::vector<float> vertexBufferData;
+    std::vector<uint32_t> elementBufferData;
+
+    // constexpr int32_t dx[] = { -1, 1, 0, 0, 0, 0 };
+    // constexpr int32_t dy[] = { 0, 0, -1, 1, 0, 0 };
+    // constexpr int32_t dz[] = { 0, 0, 0, 0, -1, 1 };
+
+    uint32_t offset = 0;
+    for (int32_t x = 0; x < Chunk::WIDTH; x++)
+    {
+        for (int32_t y = 0; y < Chunk::HEIGHT; y++)
+        {
+            for (int32_t z = 0; z < Chunk::WIDTH; z++)
+            {
+                /*
+                for (size_t k = 0; k < 6; k++)
+                {
+                    int32_t nx = x + dx[k];
+                    int32_t ny = y + dy[k];
+                    int32_t nz = z + dz[k];
+
+                    if (chunk.GetBlock(glm::ivec3(nx, ny, nz)) == Block::AIR)
+                    {
+
+                    }
+                }
+                */
+
+                vertexBufferData.push_back(pos.x + x);
+                vertexBufferData.push_back(y);
+                vertexBufferData.push_back(pos.y + z);
+                vertexBufferData.push_back(0.0f);
+                vertexBufferData.push_back(0.0f);
+
+                vertexBufferData.push_back(pos.x + x + 1.0f);
+                vertexBufferData.push_back(y);
+                vertexBufferData.push_back(pos.y + z);
+                vertexBufferData.push_back(1.0f);
+                vertexBufferData.push_back(0.0f);
+
+                vertexBufferData.push_back(pos.x + x + 1.0f);
+                vertexBufferData.push_back(y);
+                vertexBufferData.push_back(pos.y + z + 1.0f);
+                vertexBufferData.push_back(1.0f);
+                vertexBufferData.push_back(1.0f);
+
+                vertexBufferData.push_back(pos.x + x);
+                vertexBufferData.push_back(y);
+                vertexBufferData.push_back(pos.y + z + 1.0f);
+                vertexBufferData.push_back(0.0f);
+                vertexBufferData.push_back(1.0f);
+
+                elementBufferData.push_back(offset);
+                elementBufferData.push_back(offset + 2);
+                elementBufferData.push_back(offset + 1);
+
+                elementBufferData.push_back(offset);
+                elementBufferData.push_back(offset + 2);
+                elementBufferData.push_back(offset + 3);
+
+                offset += 4;
+            }
+        }
+    }
+
+    _elementCount = elementBufferData.size();
+
+    glCreateVertexArrays(1, &_vertexArray);
+    glCreateBuffers(1, &_vertexBuffer);
+    glCreateBuffers(1, &_elementBuffer);
+
+    glNamedBufferData(_vertexBuffer, vertexBufferData.size() * sizeof(float), vertexBufferData.data(), GL_STATIC_DRAW);
+    glNamedBufferData(_elementBuffer, elementBufferData.size() * sizeof(uint32_t), elementBufferData.data(), GL_STATIC_DRAW);
+
+    glVertexArrayVertexBuffer(_vertexArray, 0, _vertexBuffer, 0, 5 * sizeof(float));
+    glVertexArrayElementBuffer(_vertexArray, _elementBuffer);
+
+    glEnableVertexArrayAttrib(_vertexArray, 0);
+    glVertexArrayAttribBinding(_vertexArray, 0, 0);
+    glVertexArrayAttribFormat(_vertexArray, 0, 3, GL_FLOAT, GL_FALSE, 0);
+
+    glEnableVertexArrayAttrib(_vertexArray, 1);
+    glVertexArrayAttribBinding(_vertexArray, 1, 0);
+    glVertexArrayAttribFormat(_vertexArray, 1, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(float));
+}
+
+ChunkMesh::~ChunkMesh()
+{
+    glDeleteBuffers(1, &_elementBuffer);
+    glDeleteBuffers(1, &_vertexBuffer);
+    glDeleteVertexArrays(1, &_vertexArray);
+}
+
+void ChunkMesh::Bind() const
+{
+    glBindVertexArray(_vertexArray);
+}
+
 void Renderer::Init()
 {
     _instance = new Renderer();
@@ -113,15 +216,14 @@ void Renderer::ClearBuffers() const
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Renderer::DrawRectangle(const glm::vec4& color) const
+void Renderer::DrawChunkMesh() const
 {
+    _texture->Bind(0);
     _program->Bind();
     _program->SetUniformMat4(0, _camera.GetViewProjection());
-    _program->SetUniformVec4(1, color);
-    _texture->Bind(0);
-    _program->SetUniformInt(2, 0);
-    glBindVertexArray(_vertexArray);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+    _program->SetUniformInt(1, 0);
+    _chunkMesh->Bind();
+    glDrawElements(GL_TRIANGLES, _chunkMesh->GetElementCount(), GL_UNSIGNED_INT, nullptr);
 }
 
 static std::string vertexShaderSource =
@@ -146,8 +248,7 @@ static std::string fragmentShaderSource =
 R"(
 #version 450 core
 
-layout(location = 1) uniform vec4 u_Color;
-layout(location = 2) uniform sampler2D u_Texture;
+layout(location = 1) uniform sampler2D u_Texture;
 
 layout(location = 0) out vec4 o_Color;
 
@@ -155,7 +256,7 @@ in vec2 v_UvCoords;
 
 void main()
 {
-    o_Color = u_Color * texture(u_Texture, v_UvCoords);
+    o_Color = texture(u_Texture, v_UvCoords);
 }
 )";
 
@@ -171,41 +272,11 @@ Renderer::Renderer()
 
     _program = std::make_shared<ShaderProgram>(vertexShaderSource, fragmentShaderSource);
     _texture = std::make_shared<Texture2D>("assets/texture.png");
-
-    glCreateVertexArrays(1, &_vertexArray);
-    glCreateBuffers(1, &_vertexBuffer);
-    glCreateBuffers(1, &_elementBuffer);
-
-    float vertexBufferData[] =
-    {
-        0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, -1.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, -1.0f, 1.0f, 1.0f,
-        0.0f, 1.0f, -1.0f, 0.0f, 1.0f
-    };
-
-    uint32_t elementBufferData[] = { 0, 2, 1, 0, 2, 3 };
-
-    glNamedBufferData(_vertexBuffer, 4 * 5 * sizeof(float), vertexBufferData, GL_STATIC_DRAW);
-    glNamedBufferData(_elementBuffer, 6 * sizeof(uint32_t), elementBufferData, GL_STATIC_DRAW);
-
-    glVertexArrayVertexBuffer(_vertexArray, 0, _vertexBuffer, 0, 5 * sizeof(float));
-    glVertexArrayElementBuffer(_vertexArray, _elementBuffer);
-
-    glEnableVertexArrayAttrib(_vertexArray, 0);
-    glVertexArrayAttribBinding(_vertexArray, 0, 0);
-    glVertexArrayAttribFormat(_vertexArray, 0, 3, GL_FLOAT, GL_FALSE, 0);
-
-    glEnableVertexArrayAttrib(_vertexArray, 1);
-    glVertexArrayAttribBinding(_vertexArray, 1, 0);
-    glVertexArrayAttribFormat(_vertexArray, 1, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(float));
+    _chunkMesh = std::make_shared<ChunkMesh>(Chunk(glm::ivec2(0, 0)));
 }
 
 Renderer::~Renderer()
 {
-    glDeleteBuffers(1, &_elementBuffer);
-    glDeleteBuffers(1, &_vertexBuffer);
-    glDeleteVertexArrays(1, &_vertexArray);
 }
 
 } // namespace Krafter

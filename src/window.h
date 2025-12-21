@@ -10,8 +10,8 @@ namespace Krafter
 
 enum class Key : int
 {
-    Escape = 256,
-    Space = 32,
+    ESCAPE = 256,
+    SPACE = 32,
     W = 87,
     S = 83,
     D = 68,

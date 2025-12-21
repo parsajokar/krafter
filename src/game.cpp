@@ -22,13 +22,12 @@ void Game::Deinit()
 
 void Game::Run()
 {
-    glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     float lastFrameTime = 0.0f;
 
     while (Window::Get()->IsOpen())
     {
         Window::Get()->PollEvents();
-        if (Window::Get()->IsKeyDown(Key::Escape))
+        if (Window::Get()->IsKeyDown(Key::ESCAPE))
         {
             Window::Get()->Close();
         }
@@ -46,14 +45,12 @@ void Game::Run()
         ImGui::Begin("Settings");
         ImGui::SliderFloat("Camera Speed", &Renderer::Get()->GetCamera().speed, 1.0f, 100.0f);
         ImGui::SliderFloat("Camera Sensitivity", &Renderer::Get()->GetCamera().sensitivity, 0.1f, 10.0f);
-        ImGui::NewLine();
-        ImGui::ColorPicker4("Rectangle Color", glm::value_ptr(color));
         ImGui::End();
 
         ImGui::Render();
 
         Renderer::Get()->ClearBuffers();
-        Renderer::Get()->DrawRectangle(color);
+        Renderer::Get()->DrawChunkMesh();
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         Window::Get()->SwapBuffers();
