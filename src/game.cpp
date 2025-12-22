@@ -42,6 +42,8 @@ void Game::Run()
         ImGui::NewFrame();
 
         ImGui::Begin("Settings");
+        ImGui::Text("FPS: %.2f", 1.0f / _delta);
+        ImGui::Separator();
         Renderer::Get()->RenderImGui();
         ImGui::End();
 
@@ -70,7 +72,6 @@ Game::Game()
 
     ImGui_ImplGlfw_InitForOpenGL(Window::Get()->GetId(), true);
     ImGui_ImplOpenGL3_Init("#version 450 core");
-
 }
 
 Game::~Game()

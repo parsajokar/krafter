@@ -2,6 +2,8 @@
 
 #include <string>
 #include <string_view>
+#include <array>
+#include <vector>
 #include <memory>
 #include <cstdint>
 
@@ -45,6 +47,16 @@ private:
     uint32_t _id;
 };
 
+enum class BlockFace
+{
+    FRONT,
+    BACK,
+    LEFT,
+    RIGHT,
+    BOTTOM,
+    TOP
+};
+
 class ChunkMesh
 {
 public:
@@ -55,6 +67,13 @@ public:
     void Bind() const;
 
 private:
+    static void AddFaceToData(const std::array<glm::vec3, 4>& positionList,
+        const std::array<glm::vec2, 2>& uvCoordsList,
+        std::vector<float>& vertexBufferData, std::vector<uint32_t>& elementBufferData);
+    static void AddFaceToData(const glm::vec3& position,
+        Block block, BlockFace face,
+        std::vector<float>& vertexBufferData, std::vector<uint32_t>& elementBufferData);
+
     uint32_t _elementCount;
 
     uint32_t _vertexArray;

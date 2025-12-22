@@ -1,4 +1,3 @@
-#include <vector>
 #include <utility>
 #include <fstream>
 #include <iostream>
@@ -126,69 +125,47 @@ uint32_t ShaderProgram::CreateShader(uint32_t type, const char* source)
 
 ChunkMesh::ChunkMesh(const Chunk& chunk)
 {
-    const glm::vec2 pos = chunk.GetPosition();
-
     std::vector<float> vertexBufferData;
     std::vector<uint32_t> elementBufferData;
 
-    // constexpr int32_t dx[] = { -1, 1, 0, 0, 0, 0 };
-    // constexpr int32_t dy[] = { 0, 0, -1, 1, 0, 0 };
-    // constexpr int32_t dz[] = { 0, 0, 0, 0, -1, 1 };
+    constexpr int32_t dx[] = { -1, 1, 0, 0, 0, 0 };
+    constexpr int32_t dy[] = { 0, 0, -1, 1, 0, 0 };
+    constexpr int32_t dz[] = { 0, 0, 0, 0, -1, 1 };
+    constexpr BlockFace faces[] = {
+        BlockFace::FRONT, BlockFace::BACK,
+        BlockFace::BOTTOM, BlockFace::TOP,
+        BlockFace::LEFT, BlockFace::RIGHT
+    };
 
-    uint32_t offset = 0;
     for (int32_t x = 0; x < Chunk::WIDTH; x++)
     {
         for (int32_t y = 0; y < Chunk::HEIGHT; y++)
         {
             for (int32_t z = 0; z < Chunk::WIDTH; z++)
             {
-                /*
+                if (chunk.GetBlock(glm::vec3(x, y, z)) == Block::AIR)
+                {
+                    continue;
+                }
+
                 for (size_t k = 0; k < 6; k++)
                 {
                     int32_t nx = x + dx[k];
                     int32_t ny = y + dy[k];
                     int32_t nz = z + dz[k];
+                    BlockFace face = faces[k];
 
-                    if (chunk.GetBlock(glm::ivec3(nx, ny, nz)) == Block::AIR)
+                    if (nx < 0 || nx >= Chunk::WIDTH ||
+                        ny < 0 || ny >= Chunk::HEIGHT ||
+                        nz < 0 || nz >= Chunk::WIDTH ||
+                        chunk.GetBlock(glm::ivec3(nx, ny, nz)) == Block::AIR)
                     {
-
+                        AddFaceToData(
+                            glm::vec3(chunk.GetPosition().x + x, y, chunk.GetPosition().y + z),
+                            chunk.GetBlock(glm::vec3(x, y, z)), face,
+                            vertexBufferData, elementBufferData);
                     }
                 }
-                */
-
-                vertexBufferData.push_back(pos.x + x);
-                vertexBufferData.push_back(y);
-                vertexBufferData.push_back(pos.y + z);
-                vertexBufferData.push_back(0.0f);
-                vertexBufferData.push_back(0.0f);
-
-                vertexBufferData.push_back(pos.x + x + 1.0f);
-                vertexBufferData.push_back(y);
-                vertexBufferData.push_back(pos.y + z);
-                vertexBufferData.push_back(1.0f);
-                vertexBufferData.push_back(0.0f);
-
-                vertexBufferData.push_back(pos.x + x + 1.0f);
-                vertexBufferData.push_back(y);
-                vertexBufferData.push_back(pos.y + z + 1.0f);
-                vertexBufferData.push_back(1.0f);
-                vertexBufferData.push_back(1.0f);
-
-                vertexBufferData.push_back(pos.x + x);
-                vertexBufferData.push_back(y);
-                vertexBufferData.push_back(pos.y + z + 1.0f);
-                vertexBufferData.push_back(0.0f);
-                vertexBufferData.push_back(1.0f);
-
-                elementBufferData.push_back(offset);
-                elementBufferData.push_back(offset + 2);
-                elementBufferData.push_back(offset + 1);
-
-                elementBufferData.push_back(offset);
-                elementBufferData.push_back(offset + 2);
-                elementBufferData.push_back(offset + 3);
-
-                offset += 4;
             }
         }
     }
@@ -224,6 +201,117 @@ ChunkMesh::~ChunkMesh()
 void ChunkMesh::Bind() const
 {
     glBindVertexArray(_vertexArray);
+}
+
+void ChunkMesh::AddFaceToData(const std::array<glm::vec3, 4>& positionList,
+    const std::array<glm::vec2, 2>& uvCoordsList,
+    std::vector<float>& vertexBufferData, std::vector<uint32_t>& elementBufferData)
+{
+    const size_t offset = vertexBufferData.size() / 5;
+
+    vertexBufferData.push_back(positionList[0].x);
+    vertexBufferData.push_back(positionList[0].y);
+    vertexBufferData.push_back(positionList[0].z);
+    vertexBufferData.push_back(uvCoordsList[0].x);
+    vertexBufferData.push_back(uvCoordsList[0].y);
+
+    vertexBufferData.push_back(positionList[1].x);
+    vertexBufferData.push_back(positionList[1].y);
+    vertexBufferData.push_back(positionList[1].z);
+    vertexBufferData.push_back(uvCoordsList[1].x);
+    vertexBufferData.push_back(uvCoordsList[0].y);
+
+    vertexBufferData.push_back(positionList[2].x);
+    vertexBufferData.push_back(positionList[2].y);
+    vertexBufferData.push_back(positionList[2].z);
+    vertexBufferData.push_back(uvCoordsList[1].x);
+    vertexBufferData.push_back(uvCoordsList[1].y);
+
+    vertexBufferData.push_back(positionList[3].x);
+    vertexBufferData.push_back(positionList[3].y);
+    vertexBufferData.push_back(positionList[3].z);
+    vertexBufferData.push_back(uvCoordsList[0].x);
+    vertexBufferData.push_back(uvCoordsList[1].y);
+
+    elementBufferData.push_back(offset);
+    elementBufferData.push_back(offset + 2);
+    elementBufferData.push_back(offset + 1);
+
+    elementBufferData.push_back(offset);
+    elementBufferData.push_back(offset + 2);
+    elementBufferData.push_back(offset + 3);
+}
+
+void ChunkMesh::AddFaceToData(const glm::vec3& position,
+    const Block block, BlockFace face,
+    std::vector<float>& vertexBufferData, std::vector<uint32_t>& elementBufferData)
+{
+    std::array<glm::vec3, 4> positionList;
+    std::array<glm::vec2, 2> uvCoordsList;
+
+    glm::vec3 origin;
+    glm::vec3 dx;
+    glm::vec3 dy;
+
+    const BlockAtlas& atlas = BlockAtlas::GetAtlasOf(block);
+
+    switch (face)
+    {
+    case BlockFace::FRONT:
+        origin = position;
+        dx = glm::vec3(0.0f, 0.0f, 1.0f);
+        dy = glm::vec3(0.0f, 1.0f, 0.0f);
+        uvCoordsList[0] = atlas.side;
+        uvCoordsList[1] = atlas.side + glm::vec2(BlockAtlas::STEP, BlockAtlas::STEP);
+        break;
+
+    case BlockFace::BACK:
+        origin = position + glm::vec3(1.0f, 0.0f, 1.0f);
+        dx = glm::vec3(0.0f, 0.0f, -1.0f);
+        dy = glm::vec3(0.0f, 1.0f, 0.0f);
+        uvCoordsList[0] = atlas.side;
+        uvCoordsList[1] = atlas.side + glm::vec2(BlockAtlas::STEP, BlockAtlas::STEP);
+        break;
+
+    case BlockFace::LEFT:
+        origin = position + glm::vec3(1.0f, 0.0f, 0.0f);
+        dx = glm::vec3(-1.0f, 0.0f, 0.0f);
+        dy = glm::vec3(0.0f, 1.0f, 0.0f);
+        uvCoordsList[0] = atlas.side;
+        uvCoordsList[1] = atlas.side + glm::vec2(BlockAtlas::STEP, BlockAtlas::STEP);
+        break;
+
+    case BlockFace::RIGHT:
+        origin = position + glm::vec3(0.0f, 0.0f, 1.0f);
+        dx = glm::vec3(1.0f, 0.0f, 0.0f);
+        dy = glm::vec3(0.0f, 1.0f, 0.0f);
+        uvCoordsList[0] = atlas.side;
+        uvCoordsList[1] = atlas.side + glm::vec2(BlockAtlas::STEP, BlockAtlas::STEP);
+        break;
+
+    case BlockFace::BOTTOM:
+        origin = position + glm::vec3(1.0f, 0.0f, 0.0f);
+        dx = glm::vec3(0.0f, 0.0f, 1.0f);
+        dy = glm::vec3(-1.0f, 0.0f, 0.0f);
+        uvCoordsList[0] = atlas.bottom;
+        uvCoordsList[1] = atlas.bottom + glm::vec2(BlockAtlas::STEP, BlockAtlas::STEP);
+        break;
+
+    default: // BlockFace::TOP
+        origin = position + glm::vec3(0.0f, 1.0f, 0.0f);
+        dx = glm::vec3(0.0f, 0.0f, 1.0f);
+        dy = glm::vec3(1.0f, 0.0f, 0.0f);
+        uvCoordsList[0] = atlas.top;
+        uvCoordsList[1] = atlas.top + glm::vec2(BlockAtlas::STEP, BlockAtlas::STEP);
+        break;
+    }
+
+    positionList[0] = origin;
+    positionList[1] = origin + dx;
+    positionList[2] = origin + dx + dy;
+    positionList[3] = origin + dy;
+
+    AddFaceToData(positionList, uvCoordsList, vertexBufferData, elementBufferData);
 }
 
 void Renderer::Init()
@@ -280,6 +368,8 @@ Renderer::Renderer()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+
+    BlockAtlas::LoadAtlases();
 
     _program = std::make_shared<ShaderProgram>("assets/default.vert.glsl", "assets/default.frag.glsl");
     _texture = std::make_shared<Texture2D>("assets/texture.png");
