@@ -12,13 +12,15 @@ public:
 
     void Update();
     void UpdateProjection();
-    inline const glm::mat4& GetViewProjection() const { return _viewProjection; }
+    void RenderImGui();
 
-    float speed;
-    float sensitivity;
+    inline const glm::mat4& GetViewProjection() const { return _viewProjection; }
 
 private:
     void ToggleState();
+
+    float _speed;
+    float _sensitivity;
 
     bool _isControlled;
     bool _isSpaceReleased;

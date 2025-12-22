@@ -1,4 +1,5 @@
 #include "glm/gtc/matrix_transform.hpp"
+#include "imgui.h"
 
 #include "window.h"
 #include "game.h"
@@ -8,7 +9,7 @@ namespace Krafter
 {
 
 Camera::Camera(const glm::vec3& position, float fov)
-    : speed(10.0f), sensitivity(5.0f),
+    : _speed(10.0f), _sensitivity(5.0f),
     _isControlled(true), _isSpaceReleased(true),
     _position(position), _fov(fov),
     _pitch(0.0f), _yaw(0.0f), _lastCursorPosition(Window::Get()->GetCursorPosition())
@@ -36,10 +37,18 @@ void Camera::Update()
         glm::vec2 cursorOffset = cursorPosition - _lastCursorPosition;
         _lastCursorPosition = cursorPosition;
 
-        _pitch -= cursorOffset.y * sensitivity * delta;
-        _yaw += cursorOffset.x * sensitivity * delta;
+        _pitch -= cursorOffset.y * _sensitivity * delta;
+        _yaw += cursorOffset.x * _sensitivity * delta;
 
         _pitch = glm::clamp(_pitch, glm::radians(-89.99f), glm::radians(89.99f));
+        if (_yaw < 0.0f)
+        {
+            _yaw += glm::radians(360.0f);
+        }
+        else if (_yaw > glm::radians(360.0f))
+        {
+            _yaw -= glm::radians(360.0f);
+        }
 
         glm::vec3 direction = glm::normalize(glm::vec3(
             glm::cos(_yaw) * glm::cos(_pitch),
@@ -51,19 +60,19 @@ void Camera::Update()
 
         if (Window::Get()->IsKeyDown(Key::W))
         {
-            _position += direction * speed * delta;
+            _position += direction * _speed * delta;
         }
         if (Window::Get()->IsKeyDown(Key::S))
         {
-            _position -= direction * speed * delta;
+            _position -= direction * _speed * delta;
         }
         if (Window::Get()->IsKeyDown(Key::D))
         {
-            _position += right * speed * delta;
+            _position += right * _speed * delta;
         }
         if (Window::Get()->IsKeyDown(Key::A))
         {
-            _position -= right * speed * delta;
+            _position -= right * _speed * delta;
         }
 
         glm::mat4 transform = glm::lookAt(_position, _position + direction, up);
@@ -79,6 +88,14 @@ void Camera::UpdateProjection()
         float aspectRatio = (float)size.x / (float)size.y;
         _projection = glm::perspective(_fov, aspectRatio, 0.1f, 1000.0f);
     }
+}
+
+void Camera::RenderImGui()
+{
+    ImGui::SliderFloat("Camera Speed", &_speed, 1.0f, 100.0f);
+    ImGui::SliderFloat("Camera Sensitivity", &_sensitivity, 0.1f, 10.0f);
+    ImGui::Text("Yaw: %.2f, Pitch: %.2f", glm::degrees(_yaw), glm::degrees(_pitch));
+    ImGui::Text("Position: %.2f, %.2f, %.2f", _position.x, _position.y, _position.z);
 }
 
 void Camera::ToggleState()

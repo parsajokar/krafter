@@ -43,8 +43,7 @@ void Game::Run()
         ImGui::NewFrame();
 
         ImGui::Begin("Settings");
-        ImGui::SliderFloat("Camera Speed", &Renderer::Get()->GetCamera().speed, 1.0f, 100.0f);
-        ImGui::SliderFloat("Camera Sensitivity", &Renderer::Get()->GetCamera().sensitivity, 0.1f, 10.0f);
+        Renderer::Get()->GetCamera().RenderImGui();
         ImGui::End();
 
         ImGui::Render();
