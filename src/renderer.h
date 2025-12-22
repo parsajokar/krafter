@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <string_view>
 #include <memory>
 #include <cstdint>
@@ -28,7 +29,7 @@ private:
 class ShaderProgram
 {
 public:
-    ShaderProgram(std::string_view vertexShaderSource, std::string_view fragmentShaderSource);
+    ShaderProgram(std::string_view vertexShaderPath, std::string_view fragmentShaderPath);
     ~ShaderProgram();
 
     void Bind() const;
@@ -38,6 +39,7 @@ public:
     void SetUniformMat4(int32_t location, const glm::mat4& value) const;
 
 private:
+    static std::string ReadFileAsString(std::string_view path);
     static uint32_t CreateShader(uint32_t type, const char* source);
 
     uint32_t _id;
@@ -70,13 +72,19 @@ public:
     inline Camera& GetCamera() { return _camera; }
 
     void ClearBuffers() const;
-    void DrawChunkMesh() const;
+    void RenderChunkMesh() const;
+    void RenderImGui();
 
 private:
+    static void ApiDebugCallback(uint32_t source, uint32_t type, uint32_t id, uint32_t severity, int32_t length, const char* message, const void* userParam);
+
     inline static Renderer* _instance;
 
     Renderer();
     ~Renderer();
+
+    const uint8_t* _versionName;
+    const uint8_t* _rendererName;
 
     Camera _camera;
 

@@ -42,12 +42,12 @@ public:
     inline const glm::uvec2& GetSize() const { return _size; }
 
 private:
+    static void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
+
     inline static Window* _instance;
 
     Window();
     ~Window();
-
-    static void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
 
     WindowId _id;
     glm::uvec2 _size;

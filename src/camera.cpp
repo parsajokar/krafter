@@ -9,7 +9,7 @@ namespace Krafter
 {
 
 Camera::Camera(const glm::vec3& position, float fov)
-    : _speed(10.0f), _sensitivity(5.0f),
+    : _speed(50.0f), _sensitivity(5.0f),
     _isControlled(true), _isSpaceReleased(true),
     _position(position), _fov(fov),
     _pitch(0.0f), _yaw(0.0f), _lastCursorPosition(Window::Get()->GetCursorPosition())
@@ -92,8 +92,9 @@ void Camera::UpdateProjection()
 
 void Camera::RenderImGui()
 {
-    ImGui::SliderFloat("Camera Speed", &_speed, 1.0f, 100.0f);
-    ImGui::SliderFloat("Camera Sensitivity", &_sensitivity, 0.1f, 10.0f);
+    ImGui::Text("Camera Details:");
+    ImGui::SliderFloat("Speed", &_speed, 1.0f, 100.0f);
+    ImGui::SliderFloat("Sensitivity", &_sensitivity, 0.1f, 10.0f);
     ImGui::Text("Yaw: %.2f, Pitch: %.2f", glm::degrees(_yaw), glm::degrees(_pitch));
     ImGui::Text("Position: %.2f, %.2f, %.2f", _position.x, _position.y, _position.z);
 }

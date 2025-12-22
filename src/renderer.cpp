@@ -1,9 +1,11 @@
-#include <string>
 #include <vector>
+#include <utility>
+#include <fstream>
 #include <iostream>
 
 #include "glad/gl.h"
 #include "GLFW/glfw3.h"
+#include "imgui.h"
 #include "glm/gtc/type_ptr.hpp"
 #include "stb_image.h"
 
@@ -20,7 +22,8 @@ Texture2D::Texture2D(std::string_view path)
     uint8_t* data = stbi_load(path.data(), &_size.x, &_size.y, &channels_in_file, 0);
     if (!data)
     {
-        std::cerr << "ERROR!\n";
+        std::cerr << "[FILE] Could not read " << path << std::endl;
+        assert(false);
     }
 
     glCreateTextures(GL_TEXTURE_2D, 1, &_id);
@@ -46,11 +49,14 @@ void Texture2D::Bind(uint32_t unit) const
     glBindTextureUnit(unit, _id);
 }
 
-ShaderProgram::ShaderProgram(std::string_view vertexShaderSource, std::string_view fragmentShaderSource)
+ShaderProgram::ShaderProgram(std::string_view vertexShaderPath, std::string_view fragmentShaderPath)
 {
+    std::string vertexShaderSource = std::move(ReadFileAsString(vertexShaderPath));
+    std::string fragmentShaderSource = std::move(ReadFileAsString(fragmentShaderPath));
+
     _id = glCreateProgram();
-    uint32_t vertexShader = CreateShader(GL_VERTEX_SHADER, vertexShaderSource.data());
-    uint32_t fragmentShader = CreateShader(GL_FRAGMENT_SHADER, fragmentShaderSource.data());
+    uint32_t vertexShader = CreateShader(GL_VERTEX_SHADER, vertexShaderSource.c_str());
+    uint32_t fragmentShader = CreateShader(GL_FRAGMENT_SHADER, fragmentShaderSource.c_str());
 
     glAttachShader(_id, vertexShader);
     glAttachShader(_id, fragmentShader);
@@ -88,6 +94,25 @@ void ShaderProgram::SetUniformVec4(int32_t location, const glm::vec4& value) con
 void ShaderProgram::SetUniformMat4(int32_t location, const glm::mat4& value) const
 {
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
+}
+
+std::string ShaderProgram::ReadFileAsString(std::string_view path)
+{
+    std::ifstream file = std::ifstream(path.data(), std::ios::binary);
+    if (!file)
+    {
+        std::cerr << "[FILE] Could not read " << path << std::endl;
+        assert(false);
+    }
+
+    file.seekg(0, std::ios::end);
+    std::streamsize size = file.tellg();
+
+    std::string result = std::string(size, '\0');
+    file.seekg(0, std::ios::beg);
+    file.read(result.data(), size);
+
+    return result;
 }
 
 uint32_t ShaderProgram::CreateShader(uint32_t type, const char* source)
@@ -216,7 +241,7 @@ void Renderer::ClearBuffers() const
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Renderer::DrawChunkMesh() const
+void Renderer::RenderChunkMesh() const
 {
     _texture->Bind(0);
     _program->Bind();
@@ -226,57 +251,49 @@ void Renderer::DrawChunkMesh() const
     glDrawElements(GL_TRIANGLES, _chunkMesh->GetElementCount(), GL_UNSIGNED_INT, nullptr);
 }
 
-static std::string vertexShaderSource =
-R"(
-#version 450 core
-
-layout(location = 0) uniform mat4 u_ViewProjection;
-
-layout(location = 0) in vec3 a_Position;
-layout(location = 1) in vec2 a_UvCoords;
-
-out vec2 v_UvCoords;
-
-void main()
+void Renderer::RenderImGui()
 {
-    v_UvCoords = a_UvCoords;
-    gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
+    ImGui::Text("OpenGL Details:");
+    ImGui::Text("Version: %s", _versionName);
+    ImGui::Text("Renderer: %s", _rendererName);
+
+    ImGui::Separator();
+
+    _camera.RenderImGui();
+
+    ImGui::Separator();
 }
-)";
-
-static std::string fragmentShaderSource =
-R"(
-#version 450 core
-
-layout(location = 1) uniform sampler2D u_Texture;
-
-layout(location = 0) out vec4 o_Color;
-
-in vec2 v_UvCoords;
-
-void main()
-{
-    o_Color = texture(u_Texture, v_UvCoords);
-}
-)";
 
 Renderer::Renderer()
     : _camera(glm::vec3(0.0f), glm::radians(80.0f))
 {
     gladLoadGL(glfwGetProcAddress);
 
+    _versionName = glGetString(GL_VERSION);
+    _rendererName = glGetString(GL_RENDERER);
+
+    glDebugMessageCallback(ApiDebugCallback, nullptr);
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-    _program = std::make_shared<ShaderProgram>(vertexShaderSource, fragmentShaderSource);
+    _program = std::make_shared<ShaderProgram>("assets/default.vert.glsl", "assets/default.frag.glsl");
     _texture = std::make_shared<Texture2D>("assets/texture.png");
     _chunkMesh = std::make_shared<ChunkMesh>(Chunk(glm::ivec2(0, 0)));
 }
 
 Renderer::~Renderer()
 {
+}
+
+void Renderer::ApiDebugCallback(uint32_t source, uint32_t type, uint32_t id, uint32_t severity, int32_t length, const char* message, const void* userParam)
+{
+    std::cerr << "[OPENGL] " << message << std::endl;
+    assert(severity != GL_DEBUG_SEVERITY_HIGH);
 }
 
 } // namespace Krafter

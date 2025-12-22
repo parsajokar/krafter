@@ -1,7 +1,6 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include "glm/gtc/type_ptr.hpp"
 
 #include "window.h"
 #include "renderer.h"
@@ -43,13 +42,13 @@ void Game::Run()
         ImGui::NewFrame();
 
         ImGui::Begin("Settings");
-        Renderer::Get()->GetCamera().RenderImGui();
+        Renderer::Get()->RenderImGui();
         ImGui::End();
 
         ImGui::Render();
 
         Renderer::Get()->ClearBuffers();
-        Renderer::Get()->DrawChunkMesh();
+        Renderer::Get()->RenderChunkMesh();
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         Window::Get()->SwapBuffers();

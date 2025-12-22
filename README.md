@@ -7,10 +7,10 @@ Krafter is a **Minecraft-style voxel sandbox game** built from scratch in **C++1
 ## ✨ Features
 
 - **Modern OpenGL 4.5 renderer**  
-  Direct State Access (DSA), etc.
+  Direct State Access (DSA), Debugging Callback, etc.
 
 - **Configurable settings**  
-  Window size, FOV, render distance, vsync, debug overlays, etc.
+  Window Size, FOV, Camera Speed, Mouse Sensitivity, etc.
 
 ---
 
@@ -45,5 +45,5 @@ cd build
 cmake ..
 cd ..
 cmake --build build/
-./<THE EXECUTABLE>
+./build/krafter
 ```
