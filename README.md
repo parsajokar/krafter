@@ -1,6 +1,6 @@
 # Krafter
 
-Krafter is a **Minecraft-style voxel sandbox game** built from scratch in **C++17** and **OpenGL 4.5**.
+Krafter is a **Minecraft-style voxel sandbox game** built from scratch in **C++20** and **OpenGL 4.5**.
 
 ![gameplay](image/gameplay.png)
 
@@ -14,7 +14,7 @@ Krafter is a **Minecraft-style voxel sandbox game** built from scratch in **C++1
 
 ## 🛠️ Tech Stack
 
-- **Language:** C++17
+- **Language:** C++20
 - **Graphics:** OpenGL 4.5
 - **Libraries:**
   - GLFW — Windowing & Input
@@ -27,7 +27,7 @@ Krafter is a **Minecraft-style voxel sandbox game** built from scratch in **C++1
 
 ### Requirements
 
-- C++17 compiler
+- C++20 compiler
 - CMake 3.20+
 - OpenGL 4.5 capable GPU
 
